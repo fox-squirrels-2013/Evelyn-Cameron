@@ -36,13 +36,34 @@ Displayer.prototype.done = function(){
 // Comparer (controller)
 ////////////////////////////////////////////////
 
-var Comparer = function(){}
-
-Comparer.prototype.run = function(){
-  // replace the body of this function
-  return true; // but always return a boolean
+var Comparer = function(){
+  userChar: ""
+  gameChar: ""
 }
 
+Comparer.prototype.run = function(){
+  window.onload = function() {
+  do{
+    userChar = Keystroker.nextkey;
+    gameChar = Displayer.nextChar;
+    while (Comparer.compare(userChar, gameChar) == false && gameChar != nil){
+      userChar = Keystroker.nextkey;
+    }      
+    Displayer.verify(Comparer.compare(userChar, gameChar));
+  }
+  while(gameChar != nil);
+  Displayer.done(true);
+  }
+}
+
+Comparer.prototype.compare = function(userChar, gameChar){
+  if (userChar == gameChar){
+    return true
+  }
+  else{
+    return false
+  }
+}
 
 ////////////////////////////////////////////////
 
