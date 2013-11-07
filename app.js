@@ -62,37 +62,32 @@ Keystroker.prototype.nextKey = function(){
 ////////////////////////////////////////////////
 // Displayer (view-model)
 ////////////////////////////////////////////////
-Displayer = {
-  index :0, displayText: document.getElementById('displayText').innerHTML,
-  getGametext: function(){
-    return this.displayText
-  },
 
-  verify:function(bool){
-    if(bool){ this.index++ }
-    return this.nextChar()
-  },
-
-
-  done: function(){
-    if(this.index >= this.displayText.length){
-      $("div").animate({
-        height:'toggle',
-      },'slow')
-    }
-  },
-
-Displayer.prototype.nextChar = function(){
-  // replace the body of this function
-  return randomLetter(); // but always return a single character
-}
-
-
-  nextChar: function(){
-    return this.displayText.charAt(this.index)
-  },
+var Displayer = function(){
+  this.index = 0;
+  this.displayText = document.getElementById('displayText').innerHTML;
 };
 
+Displayer.prototype.getGametext = function() {
+  return this.displayText;
+};
+
+Displayer.prototype.verify = function(bool) {
+  if(bool){ this.index++ }
+  return this.nextChar();
+};
+
+Displayer.prototype.done = function() {
+  if(this.index >= this.displayText.length){
+    $("div").animate({ height:'toggle'},'slow');
+    return true;
+  }
+  return false;
+};
+
+Displayer.prototype.nextChar = function() {
+  return this.displayText.charAt(this.index);
+};
 
 ////////////////////////////////////////////////
 // usage ---
@@ -106,43 +101,43 @@ Displayer.prototype.nextChar = function(){
 // console.log(d.index)         // doesn't affect the index
 // console.log(d.nextChar())    // and returns the same char
 
-Displayer.prototype.done = function(){
-  // replace the body of this function
-  return true; // but always return a boolean
-}
-
-
 
 ////////////////////////////////////////////////
 // Comparer (controller)
 ////////////////////////////////////////////////
 
+var KEY_SAMPLE_INTERVAL = 50 ;
+
 var Comparer = function(){
-  // var userChar = ""
-  // var gameChar = ""
-  this.user = new Keystroker()
-  this.disp = new Displayer()
+  this.user = new Keystroker();
+  this.disp = new Displayer();
 }
 
 Comparer.prototype.run = function(){
+  this.user.startListening();
+  var k = this.user.nextKey();
+  var d = this.disp.nextChar();
 
-  do {
-    var k = this.user.nextKey();
-    var d = this.disp.nextChar();
+  var self = this;
 
-    while (!this.compare(k, d)){
+  var handle = window.setInterval(function(){
+    console.log(self.user.allKeys());
+
+    if(self.disp.done()) { clearInterval(handle); }
+
+    if(!self.keyMatchedChar(k, d)){
       console.log('keep trying...['+k+'] doesn\'t match ['+d+']');
-      k = this.user.nextKey();
+      k = self.user.nextKey();
+    } else {
+      console.log('match! nicely done. ['+k+','+d+']');
+      k = self.user.nextKey();
+      d = self.disp.verify(true);
     }
-
-    console.log('match! nicely done. ['+k+','+d+']');
-
-    this.disp.verify(true);
-
-  } while(!this.disp.done());
+  }, KEY_SAMPLE_INTERVAL);
 }
 
-Comparer.prototype.compare = function(userChar, gameChar){
+Comparer.prototype.keyMatchedChar = function(userChar, gameChar){
+  console.log(userChar, gameChar);
   return userChar === gameChar;
 }
 
