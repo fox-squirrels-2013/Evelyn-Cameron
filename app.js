@@ -7,7 +7,6 @@ var DEFAULT_MODE = 'keypress';
 var Keystroker = function(mode){
   this.mode = mode || DEFAULT_MODE;
   this.buffer = [];
-  // this.listeners = [];
   this.observers = [];
 }
 
@@ -19,7 +18,6 @@ Keystroker.prototype.startListening = function(trgt) {
   switch(this.mode){
     case 'keypress':
       if ('onkeypress' in target) {
-        // this.listeners[target + '.' + 'onkeypress'] = {target: target, type: 'onkeypress'};
         var self = this;
         target.onkeypress = function(e){
           self.buffer.push({code: e.keyCode, char: String.fromCharCode(e.keyCode)})
@@ -40,16 +38,6 @@ Keystroker.prototype.startListening = function(trgt) {
   }
 };
 
-// Keystroker.prototype.removeListeners = function() {
-//   for (var i = this.listeners.length - 1; i >= 0; i--) {
-//     this.listeners[i].removeEventListener
-//   };
-// };
-//
-// Keystroker.prototype.showListeners = function() {
-//   console.log(this.listeners);
-// };
-
 Keystroker.prototype.allKeys = function() {
   return this.buffer.map (function(s){
     return s['char'];
@@ -59,24 +47,8 @@ Keystroker.prototype.allKeys = function() {
 Keystroker.prototype.nextKey = function(){
   var key = this.buffer.shift();
   if (null != key) return key['char']; // always return a single character
-  return null;                       // OR null
+  return null;                         // OR null
 }
-
-// // allow clients to register to be notified of incoming keystrokes
-// Keystroker.prototype.registerObserver = function(func) {
-//   console.log(func);
-//   this.observers.push(func);
-// };
-
-// // run around telling everyone about what happened
-// Keystroker.prototype.notifyObservers = function() {
-//   this.observers.forEach(function(idx, el){ console.log(el); });
-// };
-
-
-// Keystroker.prototype.verify = function(bool) {
-
-// };
 
 ////////////////////////////////////////////////
 // usage ...
