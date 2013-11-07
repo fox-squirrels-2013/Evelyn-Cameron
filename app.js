@@ -13,23 +13,41 @@ Keystroker.prototype.nextKey = function(){
 ////////////////////////////////////////////////
 // Displayer (view-model)
 ////////////////////////////////////////////////
+Displayer = {
+  index :0, displayText: document.getElementById('displayText').innerHTML,
+  getGametext: function(){
+    return this.displayText
+  },
 
-var Displayer = function(){}
+  verify:function(bool){
+    if(bool){ this.index++ }
+    return this.nextChar()
+  },
 
-Displayer.prototype.nextChar = function(){
-  // replace the body of this function
-  return 'a'; // but always return a single character
-}
+  done: function(){
+    if(this.index >= this.displayText.length){
+      $("div").animate({
+        height:'toggle',
+      },'slow')
+    }
+  },
 
-Displayer.prototype.verify = function(bool){
-  // replace the body of this function
-  return bool; // but keep this line
-}
+  nextChar: function(){
+    return this.displayText.charAt(this.index)
+  },
+};
 
-Displayer.prototype.done = function(){
-  // replace the body of this function
-  return false; // but always return a boolean
-}
+////////////////////////////////////////////////
+// usage ---
+// d = Displayer;               // the displayer
+// console.log(d.index)         // keeps an index
+// console.log(d.nextChar())    // and returns next char
+// d.verify(true);              // verify(true)
+// console.log(d.index)         // updates the index
+// console.log(d.nextChar())    // and continues
+// d.verify(false);             // while verify(false)
+// console.log(d.index)         // doesn't affect the index
+// console.log(d.nextChar())    // and returns the same char
 
 
 ////////////////////////////////////////////////
