@@ -2,13 +2,19 @@
 // Keystroker (model)
 ////////////////////////////////////////////////
 
+function randomLetter(){
+  var letters = ['a', 'b', 'c', 'd'];
+  var ltr = letters[Math.floor(Math.random()*letters.length)];
+  return ltr;
+}
+
 var Keystroker = function(){}
 
 Keystroker.prototype.nextKey = function(){
   // replace the body of this function
-  return 'a'; // but always return a single character OR nil
-}
 
+  return randomLetter(); // but always return a single character OR nil
+}
 
 ////////////////////////////////////////////////
 // Displayer (view-model)
@@ -18,7 +24,7 @@ var Displayer = function(){}
 
 Displayer.prototype.nextChar = function(){
   // replace the body of this function
-  return 'a'; // but always return a single character
+  return randomLetter(); // but always return a single character
 }
 
 Displayer.prototype.verify = function(bool){
@@ -28,7 +34,7 @@ Displayer.prototype.verify = function(bool){
 
 Displayer.prototype.done = function(){
   // replace the body of this function
-  return false; // but always return a boolean
+  return true; // but always return a boolean
 }
 
 
@@ -37,32 +43,32 @@ Displayer.prototype.done = function(){
 ////////////////////////////////////////////////
 
 var Comparer = function(){
-  userChar: ""
-  gameChar: ""
+  // var userChar = ""
+  // var gameChar = ""
+  this.user = new Keystroker()
+  this.disp = new Displayer()
 }
 
 Comparer.prototype.run = function(){
-  window.onload = function() {
-  do{
-    userChar = Keystroker.nextkey;
-    gameChar = Displayer.nextChar;
-    while (Comparer.compare(userChar, gameChar) == false && gameChar != nil){
-      userChar = Keystroker.nextkey;
-    }      
-    Displayer.verify(Comparer.compare(userChar, gameChar));
-  }
-  while(gameChar != nil);
-  Displayer.done(true);
-  }
+
+  do {
+    var k = this.user.nextKey();
+    var d = this.disp.nextChar();
+
+    while (!this.compare(k, d)){
+      console.log('keep trying...['+k+'] doesn\'t match ['+d+']');
+      k = this.user.nextKey();
+    }
+
+    console.log('match! nicely done. ['+k+','+d+']');
+
+    this.disp.verify(true);
+
+  } while(!this.disp.done());
 }
 
 Comparer.prototype.compare = function(userChar, gameChar){
-  if (userChar == gameChar){
-    return true
-  }
-  else{
-    return false
-  }
+  return userChar === gameChar;
 }
 
 ////////////////////////////////////////////////
