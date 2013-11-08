@@ -42,11 +42,11 @@
   /*background: black;*/
 }
 
-.player1 {
+.me {
   font-size: 1.2em;
   color: blue;
 }
-.player2 {
+.other {
   font-size: 1.2em;
   color: orange;
 }

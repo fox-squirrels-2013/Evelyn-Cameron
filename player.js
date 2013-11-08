@@ -3,6 +3,7 @@ $('document').ready(function(){
   var FIREBASE_APP_URL = 'https://enfys.firebaseio.com/';
 
   // grab current document url
+  // console.log(document.URL);
   var docUrl    = 'http://www.enfys.com/game1/player1'.split('/');// document.URL
   var playerId  = docUrl.pop();
   var gameId    = docUrl.pop();
@@ -61,21 +62,18 @@ $('document').ready(function(){
     // console.log(this.name + ' listening...');
     var self = this;
     this.visible.on('child_added', function(line){
-      $('#lines').append(formatted.line(self.name, line.val().text));
+      $('#lines').append(formatted.line('me', line.val().text));
     });
 
     // this.pending.on('child_added', function(snapshot){
     //   console.log(self.name + ' pending lines:');
     //   console.log(snapshot.name());
     // });
+
     // console.log(this.incoming.toString());
-    // this.incoming.on('child_added', function(line){
-    //   console.log('top--------');
-    //   console.log(line.val().text);
-    //   console.log(line.name());
-    //   console.log('bottom--------');
-    //   $('#lines').append(formatted.line(self.name, line.val().text));
-    // });
+    this.incoming.on('child_added', function(line){
+      $('#lines').append(formatted.line('other', line.val().text));
+    });
   };
 
   ////////////////////////////////////////////////////////////
