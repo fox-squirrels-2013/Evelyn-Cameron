@@ -1,0 +1,38 @@
+{
+  "game1" : {
+    "player1" : {
+      "client" : "Chrome",
+      "city" : "LA",
+      "lines" : {
+        "pending" : {
+          "line2" : "More than a vow",
+          "line1" : "What they take is"
+        },
+        "incoming" : {
+          "line2" : "Hey ho! Say what",
+          "line1" : {
+            "text" : "Hey Ho!, Come on",
+            "source" : "player2"
+          }
+        },
+        "visible" : {
+          "line2" : "I've been beatin' down",
+          "line1" : "I've got an unfortunate feelin'",
+          "line3" : "I feel I don't believe and now the truth is comin' out"
+        }
+      },
+      "name" : "Brent",
+      "team" : "zombies"
+    },
+    "meta" : {
+      "title" : "zombies vs robots",
+      "start" : "today"
+    },
+    "player2" : {
+      "client" : "Mozilla",
+      "city" : "San Francisco",
+      "name" : "Dom",
+      "team" : "robots"
+    }
+  }
+}
