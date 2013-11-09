@@ -106,7 +106,7 @@ Displayer.prototype.nextChar = function() {
 // Comparer (controller)
 ////////////////////////////////////////////////
 
-var KEY_SAMPLE_INTERVAL = 50 ;
+var KEY_SAMPLE_INTERVAL = 200 ;
 
 var Comparer = function(){
   this.user = new Keystroker();

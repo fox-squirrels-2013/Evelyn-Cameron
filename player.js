@@ -9,6 +9,7 @@ $('document').ready(function(){
   var gameId    = docUrl.pop();
   var gameUrl   = FIREBASE_APP_URL + gameId + '/';
   var game      = new Firebase(gameUrl);
+  players       = [];
 
   // https://www.firebase.com/docs/creating-references.html
   // Creating a Firebase reference is an extremely light-weight operation,
@@ -19,10 +20,9 @@ $('document').ready(function(){
   console.log(playerId);
 
   game.on('child_added', function(snapshot){
-    // console.log(snapshot.child('lines').exportVal());
-    data  = snapshot;
-    name  = snapshot.name()
-    value = snapshot.val();
+    var data  = snapshot;
+    var name  = snapshot.name()
+    var value = snapshot.val();
 
     switch(true) {
       // if we find a player
@@ -30,8 +30,8 @@ $('document').ready(function(){
         if (playerId === name) {
           var player = new Player(name);
           player.start();
+          players.push(player);
         };
-        // console.log(players);
         break;
 
       // if we find game metadata
@@ -42,38 +42,59 @@ $('document').ready(function(){
       default:
         throw new RangeError('unrecognized node [' + node + ']');
     }
-
-    // players.map(start); // how do i do map in JS?
   });
 
-
   var Player = function(name){
-    console.log(name + ' created!');
+    // console.log(name + ' created!');
     this.name      = name;
     // add firebase references for player and their visible, pending and incoming queues
     this.ref       = game.child(name);
+    this.lines     = game.child(name + '/lines');
     this.visible   = game.child(name + '/lines/visible');
-    this.pending   = game.child(name + '/lines/pending');
-    this.incoming  = game.child(name + '/lines/incoming');
-    // this.formatter = Formatter;
+    this.invisible = game.child(name + '/lines/invisible');
+    this.opponent  = game.child(name + '/lines/opponent');
+
+    // local arrays to hold all the IDs
+    this.vis_      = [];
+    this.inv_      = [];
+    this.opp_      = [];
   }
 
   Player.prototype.start = function() {
     // console.log(this.name + ' listening...');
     var self = this;
+
+    //---------------------------------------------
+    // register event handlers on visible Q
+    //---------------------------------------------
     this.visible.on('child_added', function(line){
-      $('#lines').append(formatted.line('me', line.val().text));
+      self.vis_.push(line.name());
+      $('#lines').append(formatted.line('me', line.val()));
     });
 
-    // this.pending.on('child_added', function(snapshot){
-    //   console.log(self.name + ' pending lines:');
-    //   console.log(snapshot.name());
-    // });
-
-    // console.log(this.incoming.toString());
-    this.incoming.on('child_added', function(line){
-      $('#lines').append(formatted.line('other', line.val().text));
+    //---------------------------------------------
+    // register event handlers on invisible Q
+    //---------------------------------------------
+    this.invisible.on('child_added', function(line){
+      self.inv_.push(line.name());
+      // console.log(self.name + ' pending lines:');
+      // console.log(snapshot.name());
     });
+
+    this.invisible.on('child_removed', function(line){
+      self.visible.push(line.val());
+      self.vis_
+    })
+
+    //---------------------------------------------
+    // register event handlers on opponet Q
+    //---------------------------------------------
+    this.opponent.on('child_added', function(line){
+      self.opp_.push(line.name());
+      $('#lines').append(formatted.line('other', line.val()));
+    });
+
+
   };
 
   ////////////////////////////////////////////////////////////
@@ -84,5 +105,43 @@ $('document').ready(function(){
         return '<div class="'+ player +'">'+ text + '</div>';
       }
   }
+
+  ////////////////////////////////////////////////////////////
+  // seed data
+  ////////////////////////////////////////////////////////////
+
+  $('#seeder').on('click', function(){
+    var names = ['player1', 'player2'];
+
+    names.forEach(function(player){
+      var invisible = game.child(player + '/lines/invisible');
+      // var opponent  = game.child(player + '/lines/opponent');
+
+      var seedlines = $("#seed-data").text().split('\n');
+
+      seedlines.forEach(function(e){
+        invisible.push(e);
+      });
+
+    });
+  });
+
+  $('#cycle-time').on('click', function(){
+    // var visible    = game.child(players[0].name + '/lines/visible');
+    // var invisible  = game.child(players[0].name + '/lines/invisible');
+
+    var handle = players[0].invisible.on('child_removed', function(snapshot){
+      line = snapshot.val();
+      console.log(line);
+
+      players[0].visible.push(line);
+      players[0].vis_.push(line);
+    });
+
+    players[0].invisible.child(players[0].inv_.shift()).remove();
+    players[0].invisible.off('child_removed', handle)
+
+    console.log('line completed!');
+  });
 });
 
