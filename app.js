@@ -38,6 +38,10 @@ Keystroker.prototype.startListening = function(trgt) {
   }
 };
 
+// Keystroker.prototype.on = function(func, context) {
+//   func.apply(context);
+// };
+
 Keystroker.prototype.allKeys = function() {
   return this.buffer.map (function(s){
     return s['char'];
@@ -106,11 +110,12 @@ Displayer.prototype.nextChar = function() {
 // Comparer (controller)
 ////////////////////////////////////////////////
 
-var KEY_SAMPLE_INTERVAL = 200 ;
+var KEY_SAMPLE_INTERVAL = 200;
 
 var Comparer = function(){
   this.user = new Keystroker();
   this.disp = new Displayer();
+  this.errorRate = 0;
 }
 
 Comparer.prototype.run = function(){
@@ -125,9 +130,15 @@ Comparer.prototype.run = function(){
 
     if(self.disp.done()) { clearInterval(handle); }
 
-    if(!self.keyMatchedChar(k, d)){
-      console.log('keep trying...['+k+'] doesn\'t match ['+d+']');
+    console.log(k)
+    if(null === k) {
+      // you're  not typing
       k = self.user.nextKey();
+      console.log('TYPE!  fast fast, go go go.');
+    } else if(!self.keyMatchedChar(k, d)){
+      console.log('keep trying...['+k+'] doesn\'t match ['+d+']' + ' error rate ['+self.errorRate+']');
+      k = self.user.nextKey();
+      self.errorRate++;
     } else {
       console.log('match! nicely done. ['+k+','+d+']');
       k = self.user.nextKey();

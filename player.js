@@ -16,9 +16,15 @@ $('document').ready(function(){
   // so you can create as many as you like without worrying about wasting
   // bandwidth or memory.
 
-  // setup game
   console.log(playerId);
 
+  var presence = new Firebase(FIREBASE_APP_URL + '.info/connected');
+  presence.on('value', function(snap){
+    console.log(snap.name(), snap.val());
+    console.log(new Date().getTime());
+  });
+
+  // firebase setup
   game.on('child_added', function(snapshot){
     var data  = snapshot;
     var name  = snapshot.name()
@@ -44,7 +50,23 @@ $('document').ready(function(){
     }
   });
 
+    //Game Timer
+  var KEY_SAMPLE_INTERVAL = 3000;
+  var handle = window.setInterval(function(){
+    try {
+      console.log('times passin');
+      players[0].cycleTime();
+    } catch(err) {
+      console.log(err);
+      console.log('all done');
+      clearInterval(handle);
+    }
+
+  }, KEY_SAMPLE_INTERVAL);
+
+
   var Player = function(name){
+
     // console.log(name + ' created! check this out.');
     // console.log(this);
     this.name      = name;
@@ -127,11 +149,17 @@ $('document').ready(function(){
   ////////////////////////////////////////////////////////////
 
   $('#seeder').on('click', function(){
+      var lineDeletion = game.child('player1/lines/visible');
+      lineDeletion.remove();
+
       var invisible = game.child('player1/lines/invisible');
       var seedlines = $("#seed-data-1").text().split('\n');
       seedlines.forEach(function(e){
         invisible.push(e);
       });
+
+      var lineDeletion = game.child('player2/lines/visible');
+      lineDeletion.remove();
 
       var invisible = game.child('player2/lines/invisible');
       var seedlines = $("#seed-data-2").text().split('\n');
@@ -142,7 +170,6 @@ $('document').ready(function(){
 
   $('#cycle-time').on('click', function(){
     players[0].cycleTime();
-
     console.log('time has passed');
   });
 
