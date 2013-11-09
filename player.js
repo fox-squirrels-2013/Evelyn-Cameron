@@ -45,7 +45,8 @@ $('document').ready(function(){
   });
 
   var Player = function(name){
-    // console.log(name + ' created!');
+    // console.log(name + ' created! check this out.');
+    // console.log(this);
     this.name      = name;
     // add firebase references for player and their visible, pending and incoming queues
     this.ref       = game.child(name);
@@ -53,12 +54,23 @@ $('document').ready(function(){
     this.visible   = game.child(name + '/lines/visible');
     this.invisible = game.child(name + '/lines/invisible');
     this.opponent  = game.child(name + '/lines/opponent');
+    this.other     = game.child('player2/lines/opponent');
 
     // local arrays to hold all the IDs
     this.vis_      = [];
     this.inv_      = [];
     this.opp_      = [];
   }
+
+  // tracks the passage of time
+  Player.prototype.cycleTime = function() {
+    this.invisible.child(this.inv_.shift()).remove();
+  };
+
+  Player.prototype.completeLine = function() {
+    this.visible.child(this.vis_.shift()).remove();
+    $('#lines').children(':first').remove()
+  };
 
   Player.prototype.start = function() {
     // console.log(this.name + ' listening...');
@@ -72,6 +84,10 @@ $('document').ready(function(){
       $('#lines').append(formatted.line('me', line.val()));
     });
 
+    this.visible.on('child_removed', function(line){
+      self.other.push(line.val());
+    })
+
     //---------------------------------------------
     // register event handlers on invisible Q
     //---------------------------------------------
@@ -83,7 +99,7 @@ $('document').ready(function(){
 
     this.invisible.on('child_removed', function(line){
       self.visible.push(line.val());
-      self.vis_
+      self.vis_.push(line.name());
     })
 
     //---------------------------------------------
@@ -127,21 +143,16 @@ $('document').ready(function(){
   });
 
   $('#cycle-time').on('click', function(){
-    // var visible    = game.child(players[0].name + '/lines/visible');
-    // var invisible  = game.child(players[0].name + '/lines/invisible');
+    players[0].cycleTime();
 
-    var handle = players[0].invisible.on('child_removed', function(snapshot){
-      line = snapshot.val();
-      console.log(line);
+    console.log('time has passed');
+  });
 
-      players[0].visible.push(line);
-      players[0].vis_.push(line);
-    });
-
-    players[0].invisible.child(players[0].inv_.shift()).remove();
-    players[0].invisible.off('child_removed', handle)
+  $('#complete-line').on('click', function(){
+    players[0].completeLine();
 
     console.log('line completed!');
   });
+
 });
 
