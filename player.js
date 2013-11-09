@@ -127,19 +127,17 @@ $('document').ready(function(){
   ////////////////////////////////////////////////////////////
 
   $('#seeder').on('click', function(){
-    var names = ['player1', 'player2'];
-
-    names.forEach(function(player){
-      var invisible = game.child(player + '/lines/invisible');
-      // var opponent  = game.child(player + '/lines/opponent');
-
-      var seedlines = $("#seed-data").text().split('\n');
-
+      var invisible = game.child('player1/lines/invisible');
+      var seedlines = $("#seed-data-1").text().split('\n');
       seedlines.forEach(function(e){
         invisible.push(e);
       });
 
-    });
+      var invisible = game.child('player2/lines/invisible');
+      var seedlines = $("#seed-data-2").text().split('\n');
+      seedlines.forEach(function(e){
+        invisible.push(e);
+      });
   });
 
   $('#cycle-time').on('click', function(){
