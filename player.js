@@ -51,7 +51,7 @@ $('document').ready(function(){
   });
 
     //Game Timer
-  var KEY_SAMPLE_INTERVAL = 3000;
+  var KEY_SAMPLE_INTERVAL = 5000;
   var handle = window.setInterval(function(){
     try {
       console.log('times passin');
@@ -86,11 +86,18 @@ $('document').ready(function(){
 
   // tracks the passage of time
   Player.prototype.cycleTime = function() {
+    // pull next item from invisible Q
     this.invisible.child(this.inv_.shift()).remove();
+
+    // pull all items from incoming opponent Q
+    this.opponent.forEach(function(item){
+      this.opponent.child(item).remove();
+    });
   };
 
   Player.prototype.completeLine = function() {
     this.visible.child(this.vis_.shift()).remove();
+    //~ and grab ALL text from oppoenent Q into visible
     $('#lines').children(':first').remove()
   };
 
@@ -102,8 +109,14 @@ $('document').ready(function(){
     // register event handlers on visible Q
     //---------------------------------------------
     this.visible.on('child_added', function(line){
-      self.vis_.push(line.name());
-      $('#lines').append(formatted.line('me', line.val()));
+      var key = line.name();
+      self.vis_.push(key);
+
+      var color = '';
+      if(self.opp_.indexOf(key) !== -1) color = 'other';
+      else if(self.vis_.indexOf(key) !== -1) color = 'me';
+      else { console.log('something funny happened'); }
+      $('#lines').append(formatted.line(color, line.val()));
     });
 
     this.visible.on('child_removed', function(line){
@@ -129,9 +142,15 @@ $('document').ready(function(){
     //---------------------------------------------
     this.opponent.on('child_added', function(line){
       self.opp_.push(line.name());
-      $('#lines').append(formatted.line('other', line.val()));
+      // decided not to show opponent lines when they're added
+      // and instead show them when the clock ticks
+      // $('#lines').append(formatted.line('other', line.val()));
     });
 
+    this.opponent.on('child_removed', function(line){
+      self.visible.push(line.val());
+      self.vis_.push(line.name());
+    });
 
   };
 
@@ -139,10 +158,12 @@ $('document').ready(function(){
   // helper functions
   ////////////////////////////////////////////////////////////
   var formatted = {
-      line : function(player, text){
-        return '<div class="'+ player +'">'+ text + '</div>';
-      }
+    line : function(player, text){
+      return '<div class="'+ player +'">'+ text + '</div>';
+    }
   }
+
+
 
   ////////////////////////////////////////////////////////////
   // seed data
@@ -166,6 +187,8 @@ $('document').ready(function(){
       seedlines.forEach(function(e){
         invisible.push(e);
       });
+      // refresh the window to get started
+      location.reload();
   });
 
   $('#cycle-time').on('click', function(){
