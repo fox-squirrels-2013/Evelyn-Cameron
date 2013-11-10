@@ -51,15 +51,15 @@ $('document').ready(function(){
   });
 
     //Game Timer
-  var KEY_SAMPLE_INTERVAL = 5000;
+  var KEY_SAMPLE_INTERVAL = 2000;
   var handle = window.setInterval(function(){
     try {
       console.log('times passin');
       players[0].cycleTime();
     } catch(err) {
-      console.log(err);
+      console.log(err.message);
       console.log('all done');
-      clearInterval(handle);
+      // clearInterval(handle);
     }
 
   }, KEY_SAMPLE_INTERVAL);
@@ -87,11 +87,23 @@ $('document').ready(function(){
   // tracks the passage of time
   Player.prototype.cycleTime = function() {
     // pull next item from invisible Q
-    this.invisible.child(this.inv_.shift()).remove();
+    try {
+      this.invisible.child(this.inv_.shift()).remove();
+    } catch(err) {
+      // console.log(err.message);
+      console.log('no more invisible lines!');
+    }
 
     // pull all items from incoming opponent Q
-    this.opponent.forEach(function(item){
-      this.opponent.child(item).remove();
+    var self = this;
+    this.opp_.forEach(function(item){
+      console.log('item: ' + item);
+      try {
+        self.opponent.child(item).remove();
+      } catch(err) {
+        // console.log(err.message);
+        console.log('opponent has not finished a line recently');
+      }
     });
   };
 
