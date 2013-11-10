@@ -1,10 +1,14 @@
 $('document').ready(function(){
 
+  var me  = 'player1';
+  var you = 'player2';
+  var timer = 5000;
+
   var FIREBASE_APP_URL = 'https://enfys.firebaseio.com/';
 
   // grab current document url
   // console.log(document.URL);
-  var docUrl    = 'http://www.enfys.com/game1/player1'.split('/');// document.URL
+  var docUrl    = ('http://www.enfys.com/game1/'+me+ '').split('/');// document.URL
   var playerId  = docUrl.pop();
   var gameId    = docUrl.pop();
   var gameUrl   = FIREBASE_APP_URL + gameId + '/';
@@ -16,7 +20,7 @@ $('document').ready(function(){
   // so you can create as many as you like without worrying about wasting
   // bandwidth or memory.
 
-  console.log(playerId);
+  console.log(me);
 
   var presence = new Firebase(FIREBASE_APP_URL + '.info/connected');
   presence.on('value', function(snap){
@@ -33,11 +37,11 @@ $('document').ready(function(){
     switch(true) {
       // if we find a player
       case /player/.test(name):
-        if (playerId === name) {
+        // if (playerId === name) {
           var player = new Player(name);
           player.start();
           players.push(player);
-        };
+        // };
         break;
 
       // if we find game metadata
@@ -51,7 +55,6 @@ $('document').ready(function(){
   });
 
     //Game Timer
-  var KEY_SAMPLE_INTERVAL = 2000;
   var handle = window.setInterval(function(){
     try {
       console.log('times passin');
@@ -62,7 +65,7 @@ $('document').ready(function(){
       // clearInterval(handle);
     }
 
-  }, KEY_SAMPLE_INTERVAL);
+  }, timer);
 
 
   var Player = function(name){
@@ -76,7 +79,7 @@ $('document').ready(function(){
     this.visible   = game.child(name + '/lines/visible');
     this.invisible = game.child(name + '/lines/invisible');
     this.opponent  = game.child(name + '/lines/opponent');
-    this.other     = game.child('player2/lines/opponent');
+    this.other     = game.child(you + '/lines/opponent');
 
     // local arrays to hold all the IDs
     this.vis_      = [];
