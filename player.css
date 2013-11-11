@@ -51,3 +51,6 @@
   color: orange;
 }
 
+#seed-data-1, #seed-data-2 {
+  display: none;
+}

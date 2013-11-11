@@ -3,10 +3,10 @@ $('document').ready(function(){
   var FIREBASE_APP_URL = 'https://enfys.firebaseio.com/';
 
   // grab current document url
-  // console.log(document.URL);
+  // console.log()document.URL.split('/').pop().split('.')[0];
   var docUrl    = 'http://www.enfys.com/game1/player1'.split('/');// document.URL
-  var playerId  = docUrl.pop();
-  var gameId    = docUrl.pop();
+  var playerId  = document.URL.split('/').pop().split('.')[0];
+  var gameId    = 'game1';
   var gameUrl   = FIREBASE_APP_URL + gameId + '/';
   var game      = new Firebase(gameUrl);
   players       = [];
@@ -51,18 +51,18 @@ $('document').ready(function(){
   });
 
     //Game Timer
-  var KEY_SAMPLE_INTERVAL = 3000;
-  var handle = window.setInterval(function(){
-    try {
-      console.log('times passin');
-      players[0].cycleTime();
-    } catch(err) {
-      console.log(err);
-      console.log('all done');
-      clearInterval(handle);
-    }
+  // var KEY_SAMPLE_INTERVAL = 3000;
+  // var handle = window.setInterval(function(){
+  //   try {
+  //     console.log('times passin');
+  //     players[0].cycleTime();
+  //   } catch(err) {
+  //     console.log(err);
+  //     console.log('all done');
+  //     clearInterval(handle);
+  //   }
 
-  }, KEY_SAMPLE_INTERVAL);
+  // }, KEY_SAMPLE_INTERVAL);
 
 
   var Player = function(name){
@@ -76,7 +76,8 @@ $('document').ready(function(){
     this.visible   = game.child(name + '/lines/visible');
     this.invisible = game.child(name + '/lines/invisible');
     this.opponent  = game.child(name + '/lines/opponent');
-    this.other     = game.child('player2/lines/opponent');
+    var nemisis = playerId === 'player1' ? 'player2' : 'player1';
+    this.other     = game.child(nemisis + '/lines/opponent');
 
     // local arrays to hold all the IDs
     this.vis_      = [];

@@ -3,6 +3,8 @@
 ////////////////////////////////////////////////
 
 var DEFAULT_MODE = 'keypress';
+var KEY_SAMPLE_INTERVAL = 200;
+var MAX_SILENT_CYCLES = 50;
 
 var Keystroker = function(mode){
   this.mode = mode || DEFAULT_MODE;
@@ -110,12 +112,12 @@ Displayer.prototype.nextChar = function() {
 // Comparer (controller)
 ////////////////////////////////////////////////
 
-var KEY_SAMPLE_INTERVAL = 200;
 
 var Comparer = function(){
   this.user = new Keystroker();
   this.disp = new Displayer();
   this.errorRate = 0;
+  this.patience = 0;
 }
 
 Comparer.prototype.run = function(){
@@ -128,27 +130,37 @@ Comparer.prototype.run = function(){
   var handle = window.setInterval(function(){
     console.log(self.user.allKeys());
 
-    if(self.disp.done()) { clearInterval(handle); }
+    if(self.disp.done() || self.patience >= MAX_SILENT_CYCLES) {
+      clearInterval(handle);
+      console.log('all done.');
+      return;
+    }
 
-    console.log(k)
+    // console.log(k)
+
     if(null === k) {
       // you're  not typing
+      self.patience++;
       k = self.user.nextKey();
       console.log('TYPE!  fast fast, go go go.');
+
     } else if(!self.keyMatchedChar(k, d)){
       console.log('keep trying...['+k+'] doesn\'t match ['+d+']' + ' error rate ['+self.errorRate+']');
       k = self.user.nextKey();
       self.errorRate++;
+      self.patience = 0;
+
     } else {
       console.log('match! nicely done. ['+k+','+d+']');
       k = self.user.nextKey();
       d = self.disp.verify(true);
+      self.patience = 0;
     }
   }, KEY_SAMPLE_INTERVAL);
 }
 
 Comparer.prototype.keyMatchedChar = function(userChar, gameChar){
-  console.log(userChar, gameChar);
+  // console.log(userChar, gameChar);
   return userChar === gameChar;
 }
 
