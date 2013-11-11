@@ -22,6 +22,7 @@ $('document').ready(function(){
 
   console.log(me);
 
+
   var presence = new Firebase(FIREBASE_APP_URL + '.info/connected');
   presence.on('value', function(snap){
     console.log(snap.name(), snap.val());
@@ -67,7 +68,6 @@ $('document').ready(function(){
   //   }
 
   // }, KEY_SAMPLE_INTERVAL);
-
 
   var Player = function(name){
 
@@ -175,7 +175,7 @@ $('document').ready(function(){
   ////////////////////////////////////////////////////////////
   var formatted = {
     line : function(player, text){
-      return '<div class="'+ player +'">'+ text + '</div>';
+      return '<div class="typeracer_line '+ player +'">'+ text + '</div>';
     }
   }
 

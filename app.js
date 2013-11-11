@@ -1,13 +1,19 @@
+
+var CONTENT_DIV           = '.typeracer_line';
+var CONTENT_PARENT        = '#lines';
+var KEY_SAMPLE_INTERVAL   = 1000;
+var DEFAULT_EVENT         = 'keypress';
+
 ////////////////////////////////////////////////
 // Keystroker (model)
 ////////////////////////////////////////////////
 
-var DEFAULT_MODE = 'keypress';
+var DEFAULT_EVENT = 'keypress';
 var KEY_SAMPLE_INTERVAL = 200;
 var MAX_SILENT_CYCLES = 50;
 
 var Keystroker = function(mode){
-  this.mode = mode || DEFAULT_MODE;
+  this.mode = mode || DEFAULT_EVENT;
   this.buffer = [];
   this.observers = [];
 }
@@ -40,10 +46,6 @@ Keystroker.prototype.startListening = function(trgt) {
   }
 };
 
-// Keystroker.prototype.on = function(func, context) {
-//   func.apply(context);
-// };
-
 Keystroker.prototype.allKeys = function() {
   return this.buffer.map (function(s){
     return s['char'];
@@ -71,11 +73,13 @@ Keystroker.prototype.nextKey = function(){
 
 var Displayer = function(){
   this.index = 0;
-  this.displayText = document.getElementById('displayText').innerHTML;
+  this.content = $(CONTENT_PARENT + ' div:first-child').text();
+  this.alldone = false;
+  this.listeners = [];
 };
 
 Displayer.prototype.getGametext = function() {
-  return this.displayText;
+  return this.content;
 };
 
 Displayer.prototype.verify = function(bool) {
@@ -84,15 +88,30 @@ Displayer.prototype.verify = function(bool) {
 };
 
 Displayer.prototype.done = function() {
-  if(this.index >= this.displayText.length){
-    $("div").animate({ height:'toggle'},'slow');
+  if(this.index >= this.content.length){
+    // $(CONTENT_DIV).animate({ height:'toggle'},'slow');
+    console.log('done');
+    this.alldone = true;
+    this.notify();
     return true;
   }
   return false;
 };
 
 Displayer.prototype.nextChar = function() {
-  return this.displayText.charAt(this.index);
+  return this.content.charAt(this.index);
+};
+
+// register listeners
+Displayer.prototype.register = function(func) {
+  this.listeners.push(func);
+};
+
+// notify listeners
+Displayer.prototype.notify = function() {
+  this.listeners.forEach(function(f){
+    f();
+  });
 };
 
 ////////////////////////////////////////////////
@@ -128,7 +147,7 @@ Comparer.prototype.run = function(){
   var self = this;
 
   var handle = window.setInterval(function(){
-    console.log(self.user.allKeys());
+    // console.log(self.user.allKeys());
 
     if(self.disp.done() || self.patience >= MAX_SILENT_CYCLES) {
       clearInterval(handle);
@@ -165,6 +184,11 @@ Comparer.prototype.keyMatchedChar = function(userChar, gameChar){
 }
 
 ////////////////////////////////////////////////
-
-game = new Comparer();
-game.run();
+$(document).ready(function(){
+  game = new Comparer();
+  game.disp.register(function(){
+    alert('done');
+    players[0].completeLine();
+  });
+  game.run();
+});
