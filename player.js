@@ -1,5 +1,9 @@
 $('document').ready(function(){
 
+  var me  = 'player1';
+  var you = 'player2';
+  var timer = 5000;
+
   var FIREBASE_APP_URL = 'https://enfys.firebaseio.com/';
 
   // grab current document url
@@ -16,7 +20,7 @@ $('document').ready(function(){
   // so you can create as many as you like without worrying about wasting
   // bandwidth or memory.
 
-  console.log(playerId);
+  console.log(me);
 
   var presence = new Firebase(FIREBASE_APP_URL + '.info/connected');
   presence.on('value', function(snap){
@@ -33,11 +37,11 @@ $('document').ready(function(){
     switch(true) {
       // if we find a player
       case /player/.test(name):
-        if (playerId === name) {
+        // if (playerId === name) {
           var player = new Player(name);
           player.start();
           players.push(player);
-        };
+        // };
         break;
 
       // if we find game metadata
@@ -76,8 +80,7 @@ $('document').ready(function(){
     this.visible   = game.child(name + '/lines/visible');
     this.invisible = game.child(name + '/lines/invisible');
     this.opponent  = game.child(name + '/lines/opponent');
-    var nemisis = playerId === 'player1' ? 'player2' : 'player1';
-    this.other     = game.child(nemisis + '/lines/opponent');
+    this.other     = game.child(('player1' ? 'player2' : 'player1') + '/lines/opponent');
 
     // local arrays to hold all the IDs
     this.vis_      = [];
@@ -87,11 +90,30 @@ $('document').ready(function(){
 
   // tracks the passage of time
   Player.prototype.cycleTime = function() {
-    this.invisible.child(this.inv_.shift()).remove();
+    // pull next item from invisible Q
+    try {
+      this.invisible.child(this.inv_.shift()).remove();
+    } catch(err) {
+      // console.log(err.message);
+      console.log('no more invisible lines!');
+    }
+
+    // pull all items from incoming opponent Q
+    var self = this;
+    this.opp_.forEach(function(item){
+      console.log('item: ' + item);
+      try {
+        self.opponent.child(item).remove();
+      } catch(err) {
+        // console.log(err.message);
+        console.log('opponent has not finished a line recently');
+      }
+    });
   };
 
   Player.prototype.completeLine = function() {
     this.visible.child(this.vis_.shift()).remove();
+    //~ and grab ALL text from oppoenent Q into visible
     $('#lines').children(':first').remove()
   };
 
@@ -103,8 +125,14 @@ $('document').ready(function(){
     // register event handlers on visible Q
     //---------------------------------------------
     this.visible.on('child_added', function(line){
-      self.vis_.push(line.name());
-      $('#lines').append(formatted.line('me', line.val()));
+      var key = line.name();
+      self.vis_.push(key);
+
+      var color = '';
+      if(self.opp_.indexOf(key) !== -1) color = 'other';
+      else if(self.vis_.indexOf(key) !== -1) color = 'me';
+      else { console.log('something funny happened'); }
+      $('#lines').append(formatted.line(color, line.val()));
     });
 
     this.visible.on('child_removed', function(line){
@@ -130,9 +158,15 @@ $('document').ready(function(){
     //---------------------------------------------
     this.opponent.on('child_added', function(line){
       self.opp_.push(line.name());
-      $('#lines').append(formatted.line('other', line.val()));
+      // decided not to show opponent lines when they're added
+      // and instead show them when the clock ticks
+      // $('#lines').append(formatted.line('other', line.val()));
     });
 
+    this.opponent.on('child_removed', function(line){
+      self.visible.push(line.val());
+      self.vis_.push(line.name());
+    });
 
   };
 
@@ -140,10 +174,12 @@ $('document').ready(function(){
   // helper functions
   ////////////////////////////////////////////////////////////
   var formatted = {
-      line : function(player, text){
-        return '<div class="'+ player +'">'+ text + '</div>';
-      }
+    line : function(player, text){
+      return '<div class="'+ player +'">'+ text + '</div>';
+    }
   }
+
+
 
   ////////////////////////////////////////////////////////////
   // seed data
@@ -167,6 +203,8 @@ $('document').ready(function(){
       seedlines.forEach(function(e){
         invisible.push(e);
       });
+      // refresh the window to get started
+      location.reload();
   });
 
   $('#cycle-time').on('click', function(){
