@@ -1,7 +1,7 @@
 
 var CONTENT_DIV           = '.typeracer_line';
 var CONTENT_PARENT        = '#lines';
-var KEY_SAMPLE_INTERVAL   = 1000;
+var KEY_SAMPLE_INTERVAL   = 5000;
 var DEFAULT_EVENT         = 'keypress';
 
 ////////////////////////////////////////////////
@@ -9,7 +9,7 @@ var DEFAULT_EVENT         = 'keypress';
 ////////////////////////////////////////////////
 
 var DEFAULT_EVENT = 'keypress';
-var KEY_SAMPLE_INTERVAL = 200;
+var KEY_SAMPLE_INTERVAL = 1000;
 var MAX_SILENT_CYCLES = 50;
 
 var Keystroker = function(mode){
@@ -88,17 +88,26 @@ Displayer.prototype.verify = function(bool) {
 };
 
 Displayer.prototype.done = function() {
+  // console.log(this.index);
+  // console.log(this.content.length);
   if(this.index >= this.content.length){
     // $(CONTENT_DIV).animate({ height:'toggle'},'slow');
-    console.log('done');
+    // console.log('done');
     this.alldone = true;
-    this.notify();
+    console.log(this.content.length);
+    if (this.content.length !== 0) { // only notify listeners if there was actually any content
+      this.notify();
+    };
+    this.index = 0; 
+    this.content = $(CONTENT_PARENT + ' div:first-child').text();
+    // console.log(this.content);
     return true;
   }
   return false;
 };
 
 Displayer.prototype.nextChar = function() {
+  // console.log(this.content.charAt(this.index));
   return this.content.charAt(this.index);
 };
 
@@ -150,12 +159,14 @@ Comparer.prototype.run = function(){
     // console.log(self.user.allKeys());
 
     if(self.disp.done() || self.patience >= MAX_SILENT_CYCLES) {
-      clearInterval(handle);
-      console.log('all done.');
-      return;
+      // clearInterval(handle);
+      // console.log('--> line completed!');
+      // as soon as one line is done, get the first char of the next line
+      d = self.disp.verify(); 
     }
 
     // console.log(k)
+    // console.log(self.disp.content);
 
     if(null === k) {
       // you're  not typing
@@ -184,11 +195,21 @@ Comparer.prototype.keyMatchedChar = function(userChar, gameChar){
 }
 
 ////////////////////////////////////////////////
-$(document).ready(function(){
+// $(document).ready(function(){
+function startTypeRacer(){
+
+  console.log(window.player);
   game = new Comparer();
+  var self = this;
   game.disp.register(function(){
-    alert('done');
-    players[0].completeLine();
+    // console.log('registered function fired!');
+    // console.log(window.player);
+    // console.log('completing line in firebase...');
+    window.player.completeLine();
   });
   game.run();
-});
+};
+
+// wait a couple seconds before starting typeracer
+// so firebase can respond with player data
+setTimeout(startTypeRacer, 1000);
