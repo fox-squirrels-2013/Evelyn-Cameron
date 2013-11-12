@@ -2,7 +2,7 @@ $('document').ready(function(){
 
   // var me  = 'player1';
   // var you = 'player2';
-  // var timer = 5000;
+  var timer = 5000;
 
   var FIREBASE_APP_URL = 'https://enfys.firebaseio.com/';
 
@@ -16,6 +16,7 @@ $('document').ready(function(){
 
   // setup a global player to be shared across scripts for now
   window.player = undefined;
+  window.bothPlayers = [];
 
   // https://www.firebase.com/docs/creating-references.html
   // Creating a Firebase reference is an extremely light-weight operation,
@@ -43,8 +44,13 @@ $('document').ready(function(){
         if (playerId === name) {
           player = new Player(name);
           player.start();
+          bothPlayers.push(player);
           console.log('creating ... ' + player.name);
+        } else {
+          // get ref to other player FOR TESTING ONLY (see: cycleTime())
+          bothPlayers.push(new Player(name));
         };
+
         break;
 
       // if we find game metadata
@@ -59,19 +65,20 @@ $('document').ready(function(){
 
 
     //Game Timer
-  // var handle = window.setInterval(function(){
-  //   try {
-  //     console.log('times passin');
-  //     players[0].cycleTime();
-  //   } catch(err) {
-  //     console.log(err);
-  //     console.log('all done');
-  //     clearInterval(handle);
-  //   }
+  var handle = window.setInterval(function(){
+    try {
+      console.log('times passin');
+      player.cycleTime();
+    } catch(err) {
+      console.log(err);
+      console.log('all done');
+      clearInterval(handle);
+    }
 
-  // }, timer);
+  }, timer);
 
   var Player = function(name){
+    var current_player = this;
     //---------------------------------------------
     // player setup including
     // - basic player properties
@@ -95,14 +102,16 @@ $('document').ready(function(){
     //---------------------------------------------
     // refactored functions to simplify code below
     //---------------------------------------------
-    this.nextInvisibleLine = function(){
-      this.invisible.child(this.inv_.shift()).remove();
+    current_player.nextInvisibleLine = function(){
+      console.log(this.inv_);
+      current_player.invisible.child(current_player.inv_.shift()).remove();
       return true;
     }
 
-    this.hasIncomingLines = function(self){
-      return this.opp_ && this.opp_.length
+    current_player.hasIncomingLines = function(){
+      return current_player.opp_ && current_player.opp_.length
     }
+    //---------------------------------------------
   }
 
   // tracks the passage of time
@@ -120,7 +129,7 @@ $('document').ready(function(){
 
     // pull all items from incoming opponent Q
     if (current_player.hasIncomingLines()) {
-    console.log('found ' + current_player.opp_.length + 'items from opponent!');
+    console.log('found ' + current_player.opp_.length + ' items from opponent!');
       current_player.opp_.forEach(function(item){
         try {
           current_player.opponent.child(item).remove();
@@ -153,38 +162,33 @@ $('document').ready(function(){
     // register event handlers on visible Q
     //---------------------------------------------
     current_player.visible.on('child_added', function(line){
-      var key = line.name();
-      current_player.vis_.push(key);
+      var source = line.val().player;
 
-      // uncomment these lines to enable source detection
-      // if we pull everything from opponent on clock cycle
-      // instead of instantly
-      //
+      current_player.vis_.push(line.name());
 
-      // var keyReport = function(k){
-      //   ret = '';
-      //   ret += (current_player.opp_.indexOf(k) !== -1) ? 'found key in opp_' : 'key NOT in opp_';
-      //   ret += (current_player.vis_.indexOf(k) !== -1) ? 'found key in vis_' : 'key NOT in vis_';
-      //   return ret;
+      // console.log(key);
+      // console.log("-------------------------");
+      // console.log(current_player.vis_);
+      // console.log(current_player.inv_);
+      // console.log(current_player.opp_);
+      // console.log("-------------------------");
+
+      var color = (source === 1) ? 'me' : 'other';
+      // var color = 'unknown';
+      
+      // if(current_player.opp_.indexOf(key) !== -1) {
+      //   console.log('opponent key recognized');
+      //   color = 'other';
+      
+      // } else if(current_player.vis_.indexOf(key) !== -1) { 
+      //   console.log('player key recognized');
+      //   color = 'me';
+      
+      // } else { 
+      //   console.log('something funny happened'); 
       // }
 
-      console.log(key);
-      console.log(keyReport(key));
-      var color = '';
-      
-      if(current_player.opp_.indexOf(key) !== -1) {
-        console.log('opponent key recognized');
-        color = 'other';
-      
-      } else if(current_player.vis_.indexOf(key) !== -1) { 
-        console.log('player key recognized');
-        color = 'me';
-      
-      } else { 
-        console.log('something funny happened'); 
-      }
-
-      $('#lines').append(formatted.line(color, line.val()));
+      $('#lines').append(formatted.line(color, line.val().text));
     });
 
     current_player.visible.on('child_removed', function(line){
@@ -196,11 +200,13 @@ $('document').ready(function(){
     //---------------------------------------------
     current_player.invisible.on('child_added', function(line){
       current_player.inv_.push(line.name());
+      // console.log(line.name(), line.val());
     });
 
     current_player.invisible.on('child_removed', function(line){
       current_player.visible.push(line.val());
       current_player.vis_.push(line.name());
+      // console.log(line.name(), line.val());
     })
 
     //---------------------------------------------
@@ -211,11 +217,14 @@ $('document').ready(function(){
       // decided not to show opponent lines when they're added
       // and instead show them when the clock ticks
       // $('#lines').append(formatted.line('other', line.val()));
+      // console.log(line.name(), line.val());
     });
 
     current_player.opponent.on('child_removed', function(line){
       current_player.visible.push(line.val());
+      // current_player.visible.set(line);
       current_player.vis_.push(line.name());
+      // console.log(line.name(), line.val());
     });
 
   };
@@ -238,26 +247,42 @@ $('document').ready(function(){
       // lineDeletion.remove();
 
       var invisible = game.child('player1/lines/invisible');
-      var seedlines = $(".seed-data-1.test").text().split('\n');
+      var seedlines = $(".seed-data-1.tupac").text().split('\n');
       seedlines.forEach(function(e){
-        invisible.push(e);
+        var obj = {}
+        obj.player = 1;
+        obj.text = e;
+        invisible.push(obj);
+        // var rand = Math.random().toString(36).substring(7);;
+        // var obj = {};
+        // obj[rand] = e
+        // console.log(obj);
+        // invisible.set({'invisible': obj});
       });
 
       // var lineDeletion = game.child('player2/lines/visible');
       // lineDeletion.remove();
 
       var invisible = game.child('player2/lines/invisible');
-      var seedlines = $(".seed-data-2.test").text().split('\n');
+      var seedlines = $(".seed-data-2.tupac").text().split('\n');
       seedlines.forEach(function(e){
-        invisible.push(e);
+        var obj = {}
+        obj.player = 2;
+        obj.text = e;
+        invisible.push(obj);
       });
       // refresh the window to get started
-      location.reload();
+      // location.reload();
   });
 
   $('#cycle-time').on('click', function(){
-    console.log('clicked [cycle-time] for ' + player.name);
-    player.cycleTime();
+   
+    console.log('clicked [cycle-time] for');
+    console.log(bothPlayers);
+    // player.cycleTime();
+    bothPlayers.forEach(function(p){
+      p.cycleTime();
+    });
     // console.log('time has passed');
   });
 

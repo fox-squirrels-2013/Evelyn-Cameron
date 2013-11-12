@@ -50,6 +50,10 @@
   font-size: 1.2em;
   color: orange;
 }
+.unknown {
+  font-size: 1.2em;
+  color: red;
+}
 
 .seed-data-1, .seed-data-2 {
   display:none;

@@ -1,16 +1,14 @@
 
 var CONTENT_DIV           = '.typeracer_line';
 var CONTENT_PARENT        = '#lines';
-var KEY_SAMPLE_INTERVAL   = 5000;
+var KEY_SAMPLE_INTERVAL   = 50;
 var DEFAULT_EVENT         = 'keypress';
+var MAX_SILENT_CYCLES     = 500;
 
 ////////////////////////////////////////////////
 // Keystroker (model)
 ////////////////////////////////////////////////
 
-var DEFAULT_EVENT = 'keypress';
-var KEY_SAMPLE_INTERVAL = 1000;
-var MAX_SILENT_CYCLES = 50;
 
 var Keystroker = function(mode){
   this.mode = mode || DEFAULT_EVENT;
@@ -83,22 +81,32 @@ Displayer.prototype.getGametext = function() {
 };
 
 Displayer.prototype.verify = function(bool) {
-  if(bool){ this.index++ }
+  if(bool){ 
+    console.log(this.index);
+    this.wrapCharacterAt(this.index, ['[', ']']);
+    this.index++;
+  }
   return this.nextChar();
 };
 
 Displayer.prototype.done = function() {
-  // console.log(this.index);
-  // console.log(this.content.length);
+
   if(this.index >= this.content.length){
+
     // $(CONTENT_DIV).animate({ height:'toggle'},'slow');
     // console.log('done');
     this.alldone = true;
-    console.log(this.content.length);
+
+    // console.log(this.content.length);
     if (this.content.length !== 0) { // only notify listeners if there was actually any content
       this.notify();
     };
+
+    console.log('----------------')
+    console.log('resetting index');
+    console.log('----------------')
     this.index = 0; 
+    $(CONTENT_PARENT + ' div:first-child').text(this.content);
     this.content = $(CONTENT_PARENT + ' div:first-child').text();
     // console.log(this.content);
     return true;
@@ -108,7 +116,30 @@ Displayer.prototype.done = function() {
 
 Displayer.prototype.nextChar = function() {
   // console.log(this.content.charAt(this.index));
+  // debugger
   return this.content.charAt(this.index);
+};
+
+// takes an array of two symbols and wraps the target character with them
+Displayer.prototype.wrapCharacterAt = function(pos, withSymbols) {
+  var new_content;
+
+  if (pos === 0) {
+    new_content = withSymbols[0] + this.content.charAt(pos) +
+                  withSymbols[1] + this.content.slice(pos + 1);
+  } else {
+    new_content = this.content.slice(0, pos) + withSymbols[0] +
+                  this.content.charAt(pos) + withSymbols[1] + 
+                  this.content.slice(pos + 1);
+  }
+  console.log(new_content)
+  // this.content = new_content;
+  // this.index += withSymbols.join('').length;
+  this.updateScreen(new_content)
+};
+
+Displayer.prototype.updateScreen = function(new_content) {
+  $(CONTENT_PARENT + ' div:first-child').text(new_content);
 };
 
 // register listeners
@@ -159,7 +190,7 @@ Comparer.prototype.run = function(){
     // console.log(self.user.allKeys());
 
     if(self.disp.done() || self.patience >= MAX_SILENT_CYCLES) {
-      // clearInterval(handle);
+      clearInterval(handle);
       // console.log('--> line completed!');
       // as soon as one line is done, get the first char of the next line
       d = self.disp.verify(); 
@@ -205,7 +236,7 @@ function startTypeRacer(){
     // console.log('registered function fired!');
     // console.log(window.player);
     // console.log('completing line in firebase...');
-    window.player.completeLine();
+    // window.player.completeLine();
   });
   game.run();
 };
