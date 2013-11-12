@@ -3,7 +3,7 @@ var CONTENT_DIV           = '.typeracer_line';
 var CONTENT_PARENT        = '#lines';
 var KEY_SAMPLE_INTERVAL   = 50;
 var DEFAULT_EVENT         = 'keypress';
-var MAX_SILENT_CYCLES     = 500;
+var MAX_SILENT_CYCLES     = 5000;
 
 ////////////////////////////////////////////////
 // Keystroker (model)
@@ -83,10 +83,17 @@ Displayer.prototype.getGametext = function() {
 Displayer.prototype.verify = function(bool) {
   if(bool){ 
     console.log(this.index);
-    this.wrapCharacterAt(this.index, ['[', ']']);
     this.index++;
+    this.wrapCharacterAt(this.index, ['[', ']']);
   }
   return this.nextChar();
+};
+
+Displayer.prototype.newLine = function() {
+  console.log('----------------')
+  console.log('resetting index');
+  console.log('----------------')
+  this.content = $(CONTENT_PARENT + ' div:first-child').text();
 };
 
 Displayer.prototype.done = function() {
@@ -101,14 +108,6 @@ Displayer.prototype.done = function() {
     if (this.content.length !== 0) { // only notify listeners if there was actually any content
       this.notify();
     };
-
-    console.log('----------------')
-    console.log('resetting index');
-    console.log('----------------')
-    this.index = 0; 
-    $(CONTENT_PARENT + ' div:first-child').text(this.content);
-    this.content = $(CONTENT_PARENT + ' div:first-child').text();
-    // console.log(this.content);
     return true;
   }
   return false;
@@ -236,7 +235,9 @@ function startTypeRacer(){
     // console.log('registered function fired!');
     // console.log(window.player);
     // console.log('completing line in firebase...');
-    // window.player.completeLine();
+    window.player.completeLine(function(){
+      game.disp.newLine();
+    });
   });
   game.run();
 };

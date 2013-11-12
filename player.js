@@ -142,7 +142,7 @@ $('document').ready(function(){
     };
   };
 
-  Player.prototype.completeLine = function() {
+  Player.prototype.completeLine = function(callback) {
     console.log('line completed!');
     var current_player = this;
 
@@ -150,6 +150,7 @@ $('document').ready(function(){
       $('#lines').children(':first').remove()
       current_player.visible.child(current_player.vis_.shift()).remove();
       //~ and grab ALL text from oppoenent Q into visible
+      setTimeout(callback, 200); // wait a half-sec for firebase to settle
     } catch(err){
       // console.log('nothing found for current player!\n' + err);
     }
